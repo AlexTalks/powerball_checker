@@ -60,7 +60,6 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
 
         self.tickets = []
         line_num = 0
-        error_num = 0
 
         with open(self.ticket_file) as f:
             header = f.readline()
@@ -77,8 +76,7 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
                 except:
                     continue
 
-        print "Read %d tickets, %d of them had errors" % (line_num, error_num)
-        if line_num > 0 and error_num < line_num:
+        if line_num > 0 and len(self.tickets) > 0:
             self.tickets_loaded = True
         else:
             print "Too many errors, please try again"
