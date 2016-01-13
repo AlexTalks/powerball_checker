@@ -29,6 +29,7 @@ class PowerballChecker(cmd.Cmd):
         self.powerball = None
         self.won = False
         self.winning_tickets = []
+        self.checked = False
 
         # Cmd aliases
         self.do_tickets = self.do_load
@@ -59,7 +60,6 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
 
         self.tickets = []
         line_num = 0
-        error_num = 0
 
         with open(self.ticket_file) as f:
             header = f.readline()
@@ -67,25 +67,23 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
                 line_num += 1
                 cols = line.rstrip().split(',')
                 if len(cols) < 7:
-                    error_num += 1
                     continue
                 try:
                     ticket = PowerballTicket(cols[0].strip(), 
                         [int(cols[1]), int(cols[2]), int(cols[3]), int(cols[4]), int(cols[5])],
                         int(cols[6]))
+                    self.tickets.append(ticket)
                 except:
-                    error_num += 1
                     continue
-                self.tickets.append(ticket)
 
-        print "Read %d tickets, %d of them had errors" % (line_num, error_num)
-        if line_num > 0 and error_num < line_num:
+        if line_num > 0 and len(self.tickets) > 0:
             self.tickets_loaded = True
         else:
             print "Too many errors, please try again"
 
         if self.tickets_loaded:
-            print "✅ Tickets loaded from file \"%s\"" % (self.ticket_file)
+            print "✅ %d Tickets loaded from file \"%s\" (out of %d)" % (len(self.tickets), 
+                self.ticket_file, line_num)
 
 
     def do_balls(self, arg):
@@ -129,6 +127,7 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
 
 
     def check_winnings(self):
+        self.checked = True
         self.won = False
         self.winning_tickets = []
         for ticket in self.tickets:
@@ -141,10 +140,14 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
             print "💰 GRAND PRIZE WON! 💰"
         elif len(self.winning_tickets) > 0:
             print "💸 Some winning tickets found..."
-        print "Ticket \t\t| Winnings"
-        print "----------\t| ---------"
-        for ticket in self.winning_tickets:
-            print ticket[0].ticket_number, "\t|", ticket[1]
+        else:
+            print "Sorry to announce... no tickets have won"
+
+        if len(self.winning_tickets):
+            print "Ticket \t\t| Winnings"
+            print "----------\t| ---------"
+            for ticket in self.winning_tickets:
+                print ticket[0].ticket_number, "\t|", ticket[1]
 
 
     def matching_whites(self, selected, drawn):
@@ -200,7 +203,7 @@ Ticket Number\t| WB 1\t| WB 2\t| WB 3\t| WB 4\t| WB 5\t| Powerball
             print "Congratulations on winning! 💸"
         elif len(self.winning_tickets) > 0:
             print "Some congrats are in order..."
-        elif(self.ready_to_check()):
+        elif(self.checked):
             print "Sorry that you lost! 😭"
         return True
 
